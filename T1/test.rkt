@@ -1,4 +1,5 @@
 #lang play
+(require math/flonum)
 (require "T1.rkt")
 
 (print-only-errors #t)
@@ -62,7 +63,19 @@
 
 ;; Part d)
 
-;;
+;; eval
+(test ((fold-cfraction identity
+                  (λ (a0 b0 a1) (+ a0 (/ b0 a1)))) cf3)
+      4)
+
+(test ((fold-cfraction identity
+                  (λ (a0 b0 a1) (+ a0 (/ b0 a1)))) cf6)
+        1.5)
+
+;; degree
+(test ((fold-cfraction (λ (_) 0) (λ (a0 b0 a1) (+ 1 a1))) cf7) 0)
+
+(test ((fold-cfraction (λ (_) 0) (λ (a0 b0 a1) (+ 1 a1))) cf9) 3)
 
 ;; Part e)
 
@@ -98,6 +111,56 @@
 ;; more complex case
 (define cf17 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
 (test (degree2 cf17) 3)
+
+
+;; Part f)
+
+(define cf18 (mysterious-cf 0))
+(test cf18 (simple 6))
+
+(define cf19 (mysterious-cf 1))
+(test cf19 (compound 6 (sqr 1)(simple 6)))
+
+(define cf20 (mysterious-cf 3))
+(test cf20 (compound 6 (sqr 1)(compound 6 (sqr 3) (compound 6 (sqr 5) (simple 6)))))
+
+
+;; Part g)
+
+;; Test from-to
+(define l (from-to 0 0))
+(test l '())
+
+(define l1 (from-to 0 3))
+(test l1 '(0 1 2))
+
+;; Test mysterious-list
+(define l2 (mysterious-list 0))
+(test l2 (list
+          (fl (- (eval (mysterious-cf 0)) 3))))
+
+(define l3 (mysterious-list 1))
+(test l3 (list
+          (fl (- (eval (mysterious-cf 0)) 3))
+          (fl (- (eval (mysterious-cf 1)) 3))))
+
+(define l4 (mysterious-list 2))
+(test l4 (list
+          (fl (- (eval (mysterious-cf 0)) 3))
+          (fl (- (eval (mysterious-cf 1)) 3))
+          (fl (- (eval (mysterious-cf 2)) 3))))
+
+
+;; Part h)
+
+(define l5 ( rac-to-cf (+ 3 49/200)))
+(test l5 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
+
+
+
+
+
+
 
 
 

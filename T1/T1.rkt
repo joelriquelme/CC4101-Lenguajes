@@ -61,17 +61,54 @@ Type CFraction represent a finit Continued Fraction.
 
 ;; Parte f)
 ;; mysterious-cf :: Integer -> CFraction
-
+(define (mysterious-cf n)
+  (define (aux n o)
+          (if (zero? n)
+              o
+              (aux (- n 1) (compound 6 (sqr (- (* 2 n) 1)) o))))
+    
+  (aux n (simple 6)))
 
 ;; Parte g)
 ;; from-to :: Integer Integer -> ListOf Integer
+;; Returns a ListOf Integers from a number to another number, e.g. (from-to 0 3) -> '(0 1 2)
+(define (from-to n m)
+  (define (aux-list n m l)
+    (if (>= n m)
+        l
+        (aux-list (+ n 1) m (append l (list n)))))
 
+  (aux-list n m (list)))
 
 ;; mysterious-list :: Integer -> ListOf Float
+;; Returns a ListOf Float with eval of i-th element of (mysterious-cf i ) minus 3.
+(define (mysterious-list n)
+  (define l (from-to 0 (+ n 1)))
+  (define l1 (map fl (map (λ (n) (- n 3)) (map eval2 (map mysterious-cf l)))))
+
+  l1)
 
 
 ;; A que numero tiende (mysterious-cf k) cuando k tiende a infinito?
+;; Trying whith k = 300 its posible to see that the number of this limit is Pi.
 
 
 ;; Parte h)
 ;; rac-to-cf :: Rational -> CFraction
+;; Returns the CFraction representation of a Rational number.
+(define (rac-to-cf n)
+  
+  (define (aux-rac r l)
+    (define i (floor r))
+    (define l1 (append l (list i)))
+    (define f (- r i))
+    (if (zero? f)
+        l1
+        (aux-rac (/ 1 f) l1)))
+
+  (define (list-to-cf l)
+    (if (= 1 (length l))
+        (simple (car l))
+        (compound (car l) 1 (list-to-cf (cdr l)))))
+
+  (list-to-cf (aux-rac n (list))))

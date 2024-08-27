@@ -45,18 +45,19 @@ Type CFraction represent a finit Continued Fraction.
   (λ (cf)
     (match cf
       [(simple a0) (f a0)]
-      [(compound a0 b0 a1) (g a0 b0 (fold-cfraction f g a1))])))
+      [(compound a0 b0 a1) (g a0 b0 ((fold-cfraction f g) a1))])))
                    
 ;; Parte e)
 ;; eval2 :: CFraction -> Rational
 ;; Function that returns the eval CFraction in to Rational.
 (define eval2
-  (fold-cfraction identity +))
+  (fold-cfraction identity
+                  (λ (a0 b0 a1) (+ a0 (/ b0 a1)))))
 
 ;; degree2 ::  CFraction -> Integer
 ;; Funtion rhat returns the degree of a CFRaction.
 (define degree2
-  (fold-cfraction (λ (_) 0) (λ (_) (+ 1))))
+  (fold-cfraction (λ (_) 0) (λ (a0 b0 a1) (+ 1 a1))))
 
 ;; Parte f)
 ;; mysterious-cf :: Integer -> CFraction

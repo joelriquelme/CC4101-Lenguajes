@@ -87,6 +87,19 @@
 (test (eval2 cf14) 1.5)
 
 
+;; simple degree
+(define cf15 (simple 3))
+(test (degree2 cf15) 0)
+
+;; compound degree
+(define cf16 (compound 3 2 (simple 2)))
+(test (degree2 cf16) 1)
+
+;; more complex case
+(define cf17 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
+(test (degree2 cf17) 3)
+
+
 
 
 

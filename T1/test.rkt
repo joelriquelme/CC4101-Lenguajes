@@ -157,9 +157,9 @@
 
 ;; Part h)
 
-(define l5 (rac-to-cf (+ 3 49/200)))
-(test l5 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
+(define l6 (rac-to-cf (+ 3 49/200)))
+(test l6 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
 
-(define l6 (rac-to-cf 0))
-(test l6 (simple 0))
+(define l7 (rac-to-cf 0))
+(test l7 (simple 0))
 

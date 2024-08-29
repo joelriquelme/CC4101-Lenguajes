@@ -77,6 +77,7 @@
 
 (test ((fold-cfraction (λ (_) 0) (λ (a0 b0 a1) (+ 1 a1))) cf9) 3)
 
+
 ;; Part e)
 
 ;; simple eval
@@ -135,39 +136,30 @@
 (test l1 '(0 1 2))
 
 ;; Test mysterious-list
-(define l2 (mysterious-list 0))
+(define l2 (mysterious-list 1))
 (test l2 (list
           (fl (- (eval (mysterious-cf 0)) 3))))
 
-(define l3 (mysterious-list 1))
+(define l3 (mysterious-list 2))
 (test l3 (list
           (fl (- (eval (mysterious-cf 0)) 3))
           (fl (- (eval (mysterious-cf 1)) 3))))
 
-(define l4 (mysterious-list 2))
+(define l4 (mysterious-list 3))
 (test l4 (list
           (fl (- (eval (mysterious-cf 0)) 3))
           (fl (- (eval (mysterious-cf 1)) 3))
           (fl (- (eval (mysterious-cf 2)) 3))))
 
+(define l5 (mysterious-list 0))
+(test l5 '())
+
 
 ;; Part h)
 
-(define l5 ( rac-to-cf (+ 3 49/200)))
+(define l5 (rac-to-cf (+ 3 49/200)))
 (test l5 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(define l6 (rac-to-cf 0))
+(test l6 (simple 0))
 

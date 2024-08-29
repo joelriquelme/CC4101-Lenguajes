@@ -83,7 +83,7 @@ Type CFraction represent a finit Continued Fraction.
 ;; mysterious-list :: Integer -> ListOf Float
 ;; Returns a ListOf Float with eval of i-th element of (mysterious-cf i ) minus 3.
 (define (mysterious-list n)
-  (define l (from-to 0 (+ n 1)))
+  (define l (from-to 0 n))
   (define l1 (map fl (map (λ (n) (- n 3)) (map eval2 (map mysterious-cf l)))))
 
   l1)

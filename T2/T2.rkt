@@ -10,7 +10,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 |#
 
 ;;------------ ;;
-;;==== T2 ==== ;;
+;;==== P1 ==== ;;
 ;;------------ ;;
 
 
@@ -25,9 +25,9 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
          | (p-not <prop>)
          | (p-and <prop>)
          | (p-or <prop>)
-         | (p-where <sym> <prop> <prop>)
+         | (p-where <prop> <sym> <prop>)
          | (p-id <sym>)
-Prop represents a Boolean values and operators
+Prop represents a Boolean values and operators.
 |#
 
 (deftype Prop
@@ -37,7 +37,7 @@ Prop represents a Boolean values and operators
   (p-and ps)
   (p-or ps)
   (p-id x)
-  (p-where x name-expr body))
+  (p-where body x name-expr))
 
 
 ;;----- ;;
@@ -57,7 +57,7 @@ Concrete syntax of propositions:
 |#
 
 ;; parse-prop : <s-prop> -> Prop
-;; Parses lenguaje of Boolean propositions
+;; Parses lenguaje of Boolean propositions.
 (define (parse-prop s-prop)
   (match s-prop
     ['true (tt)]
@@ -72,8 +72,8 @@ Concrete syntax of propositions:
      (if (< (length sprops) 2)
          (error "parse-prop: or expects at least two operands")
          (p-or (map parse-prop sprops)))]
-    [(list (? symbol? x) 'where (list named-expr sprop))
-     (p-where (parse-prop named-expr) x (parse-prop sprop))]
+    [(list body 'where (list (? symbol? x) sprop))
+     (p-where (parse-prop body) x (parse-prop sprop))]
     ))
 
 ;;----- ;;
@@ -84,7 +84,7 @@ Concrete syntax of propositions:
 #|
 <value> ::= ttV
           | ffV
-PValue is a recursive data type that represents the notion of the values in the language
+PValue is a recursive data type that represents the notion of the values in the language.
 |#
 
 (deftype PValue
@@ -105,6 +105,7 @@ PValue is a recursive data type that represents the notion of the values in the 
 
 
 ;; p-subst : Prop Symbol Prop -> Prop
+;; This function do the substitution of a proposition with an identifier.
 (define (p-subst target name substitution)
   (match target
     [(tt) (tt)]
@@ -113,14 +114,19 @@ PValue is a recursive data type that represents the notion of the values in the 
      (if (equal? x name)
          substitution
          (p-id x))]
-    [(p-not s)   
-     (p-not (p-subst s name substitution))]  
-    [(p-and sprop) 
-     (p-and (map p-subst sprop name substitution))]
-    [(p-or sprop) 
-     (p-or (map p-subst sprop name substitution))]
-    [(p-where x name-expr body)
-     (p-where x name-expr (p-subst body name substitution))] 
+    [(p-not sprop)   
+     (p-not (p-subst sprop name substitution))]  
+    [(p-and sprops) 
+     (p-and (map (λ (sprops) (p-subst sprops name substitution)) sprops))]
+    [(p-or sprops) 
+     (p-or (map (λ (sprops) (p-subst sprops name substitution)) sprops))]
+    [(p-where b x e)
+     (p-where (if (equal? x name)
+                  b
+                  (p-subst b name substitution)
+              )
+              x
+              (p-subst e name substitution))] 
    ))
 
 
@@ -130,13 +136,46 @@ PValue is a recursive data type that represents the notion of the values in the 
 
 
 ;; eval-or : (Listof Prop) -> PValue
-(define (eval-or ps) '???)
+;; Recursive evaluation of p-or with short-circuiting if a ttV is found in any proposition.
+(define (eval-or ps)
+  (match ps
+    [(list) (ffV)]
+    [(list l-prop r-prop ...)
+     (if (equal? (p-eval l-prop) (ffV))
+         (eval-or r-prop)
+         (ttV))]
+  ))
 
 ;; eval-and : (Listof Prop) -> PValue
-(define (eval-and ps) '???)
+;; Recursive evaluation of p-and with short-circuiting if a ffV is found in any proposition.
+(define (eval-and ps)
+  (match ps
+    [(list) (ttV)]
+    [(list l-prop r-prop ...)
+     (if (equal? (p-eval l-prop) (ttV))
+         (eval-and r-prop)
+         (ffV))]
+  ))
 
 ;; p-eval : Prop -> PValue
-(define (p-eval p) '???)
+;; Recursive evaluation of a Prop, returns a PValue.
+(define (p-eval p)
+  (match p
+    [(tt) (ttV)]
+    [(ff) (ffV)]
+    [(p-not sprop)
+     (match (p-eval sprop)
+         [(ttV) (ffV)]
+         [(ffV) (ttV)]
+     )
+    ]
+    [(p-and sprops) (eval-and sprops)]
+    [(p-or sprops) (eval-or sprops)]
+    [(p-where b x e)
+     (p-eval (p-subst b x (from-PValue (p-eval e))))
+    ]
+    [(p-id x) (error 'p-eval "Open expression (free occurrence of ~a)" x)]
+ ))
 
 ;;------------ ;;
 ;;==== P2 ==== ;;

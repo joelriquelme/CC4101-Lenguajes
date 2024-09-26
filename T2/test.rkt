@@ -69,7 +69,6 @@
 ;; Part e)
 
 ;; eval-or
-
 (test (eval-or (list)) (ffV))
 (test (eval-or (list (ff) (ff))) (ffV))
 (test (eval-or (list (tt) (tt))) (ttV))
@@ -77,13 +76,39 @@
 (test (eval-or (list (ff) (p-not (ff)) (ff))) (ttV))
 (test/exn (eval-or (list (ff) (ff) (p-id 'x) (ff)))
           "Open expression (free occurrence of x)")
+(test (eval-or (list (ff) (p-not (ff)) (p-id 'x))) (ttV))
 
-
+;; eval-and
 (test (eval-and (list)) (ttV))
 (test (eval-and (list (tt) (ff))) (ffV))
 (test (eval-and (list (tt) (tt))) (ttV))
 (test (eval-and (list (tt) (p-not (ff)) (tt))) (ttV))
 (test (eval-and (list (tt) (p-not (tt)) (tt))) (ffV))
+(test/exn (eval-and (list (tt) (tt) (p-id 'x) (ff)))
+          "Open expression (free occurrence of x)")
+(test (eval-or (list (ff) (p-not (ff)) (p-id 'x))) (ttV))
+
+;; p-eval
+(test (p-eval (parse-prop 'true)) (ttV))
+(test (p-eval (parse-prop 'false)) (ffV))
+(test (p-eval (parse-prop '(not true))) (ffV))
+(test (p-eval (parse-prop '(not false))) (ttV))
+(test (p-eval (parse-prop '(and true true false))) (ffV))
+(test (p-eval (parse-prop '(and true true true))) (ttV))
+(test (p-eval (parse-prop '(true where [x true]))) (ttV))
+(test (p-eval (parse-prop '(x where [x true]))) (ttV))
+(test (p-eval (parse-prop '(x where [x true]))) (ttV))
+(test/exn (p-eval (parse-prop '((and x y) where [x true]))) "Open expression (free occurrence of y)")
+(test (p-eval (parse-prop '((and x y) where [x false]))) (ffV))
+(test/exn (p-eval (parse-prop '((or x y) where [x false]))) "Open expression (free occurrence of y)")
+(test (p-eval (parse-prop '((or x y) where [x true]))) (ttV))
+
+
+
+
+
+
+
 
 
 

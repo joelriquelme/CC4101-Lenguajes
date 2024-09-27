@@ -316,7 +316,7 @@ CValue respresents a complex number, the first value is a real and the second is
   )
 
 ;; subst :: Expr Symbol Expr -> Expr
-;; ESCRIBE ALGO AQUI PORFA
+;; substitute the value of one expression into another expression, taking into account whether shadowing exists or not.
 (define (subst in what for)
   (match in
     [(real n) (real n)]
@@ -334,10 +334,10 @@ CValue respresents a complex number, the first value is a real and the second is
      (let ((subst-vars (subst-in vars what for '())))
        (with subst-vars
              (if (findf (λ (arg)
-                        (match arg
-                          [(cons x _)
-                           (symbol=? x what)]))
-                      subst-vars)
+                          (match arg
+                            [(cons x _)
+                             (symbol=? x what)]))
+                        subst-vars)
                  body
                  (subst body what for)))
       )

@@ -8,7 +8,7 @@
 ;;------------ ;;
 
 ;; Part a)
-;; Cronstructors
+;; Constructors
 (test (Prop? (tt)) #t)
 (test (Prop? (ff)) #t)
 (test (Prop? (p-not (tt))) #t)
@@ -102,6 +102,130 @@
 (test (p-eval (parse-prop '((and x y) where [x false]))) (ffV))
 (test/exn (p-eval (parse-prop '((or x y) where [x false]))) "Open expression (free occurrence of y)")
 (test (p-eval (parse-prop '((or x y) where [x true]))) (ttV))
+
+
+;;------------ ;;
+;;==== P2 ==== ;;
+;;------------ ;;
+
+;; part a)
+;; Constructors
+
+(test (Expr? (real 1)) #t)
+(test (Expr? (real -1)) #t)
+(test (Expr? (real 0)) #t)
+(test (Expr? (imaginary 1)) #t)
+(test (Expr? (imaginary -1)) #t)
+(test (Expr? (imaginary 0)) #t)
+(test (Expr? (id 'x)) #t)
+(test (Expr? (id 'test)) #t)
+(test (Expr? (add 'x 'y)) #t)
+(test (Expr? (add 0 0)) #t)
+(test (Expr? (add 'x 0)) #t)
+(test (Expr? (add 'y 0)) #t)
+(test (Expr? (sub 'x 'y)) #t)
+(test (Expr? (sub 0 0)) #t)
+(test (Expr? (sub 'x 0)) #t)
+(test (Expr? (sub 'y 0)) #t)
+(test (Expr? (if0 0 'x 'y)) #t)
+(test (Expr? (with (list 'x 0) 'x))#t)
+
+;; part b)
+(test (parse '1) (real 1))
+(test (parse '0) (real 0))
+(test (parse '-1) (real -1))
+(test (parse '(1 i )) (imaginary 1))
+(test (parse '(0 i )) (imaginary 0))
+(test (parse '(-1 i )) (imaginary -1))
+(test (parse '(+ (2 i ) 1)) (add (imaginary 2) (real 1)))
+(test (parse '(+ 1 (2 i ))) (add (real 1) (imaginary 2)))
+(test (parse '(- (2 i ) 1)) (sub (imaginary 2) (real 1)))
+(test (parse '(- 1 (2 i ))) (sub (real 1) (imaginary 2)))
+(test (parse '(with [(x 1) (y 1)] (+ x y))) (with (list (cons 'x(real 1)) (cons 'y(real 1))) (add(id 'x)(id 'y))))
+(test (parse '(with [(x y) (y x)] (+ x y))) (with (list (cons 'x (id 'y)) (cons 'y (id 'x))) (add (id 'x) (id 'y))))
+(test/exn (parse ' (with [ ] 1)) "parse: 'with' expects at least one definition")
+(test (parse '(with [ (x 2) (y (+ x 1))] (+ x y))) (with (list (cons 'x (real 2)) (cons 'y (add (id 'x) (real 1)))) (add (id 'x) (id 'y)))) 
+
+;; part c)
+;; Constructor
+(test (CValue? (compV 1 1)) #t)
+(test (CValue? (compV 0 0)) #t)
+(test (CValue? (compV 'x 'y)) #t)
+
+;; from-CValue
+(test (from-CValue (compV 0 0)) (real 0))
+(test (from-CValue (compV 1 0)) (real 1))
+(test (from-CValue (compV -1 0)) (real -1))
+(test (from-CValue (compV 0 1)) (imaginary 1))
+(test (from-CValue (compV 0 -1)) (imaginary -1))
+(test (from-CValue (compV 1 1)) (add (real 1) (imaginary 1)))
+(test (from-CValue (compV -1 1)) (add (real -1) (imaginary 1)))
+(test (from-CValue (compV 1 -1)) (add (real 1) (imaginary -1)))
+(test (from-CValue (compV -1 -1)) (add (real -1) (imaginary -1)))
+
+;; cmplx+
+(test (cmplx+ (compV 0 0) (compV 0 0)) (compV 0 0))
+(test (cmplx+ (compV 1 1) (compV 0 0)) (compV 1 1))
+(test (cmplx+ (compV 0 0) (compV 1 1)) (compV 1 1))
+(test (cmplx+ (compV 1 1) (compV 1 1)) (compV 2 2))
+(test (cmplx+ (compV -1 -1) (compV 1 1)) (compV 0 0))
+(test (cmplx+ (compV 1 1) (compV -1 -1)) (compV 0 0))
+
+;; cmplx-
+(test (cmplx- (compV 0 0) (compV 0 0)) (compV 0 0))
+(test (cmplx- (compV 1 1) (compV 0 0)) (compV 1 1))
+(test (cmplx- (compV 0 0) (compV 1 1)) (compV -1 -1))
+(test (cmplx- (compV 1 1) (compV 1 1)) (compV 0 0))
+(test (cmplx- (compV -1 -1) (compV 1 1)) (compV -2 -2))
+(test (cmplx- (compV 1 1) (compV -1 -1)) (compV 2 2))
+
+;; cmplx0?
+(test (cmplx0? (compV 0 0)) #t)
+(test (cmplx0? (compV 1 0)) #f)
+(test (cmplx0? (compV 0 1)) #f)
+(test (cmplx0? (compV 1 1)) #f)
+(test (cmplx0? (cmplx- (compV 1 1) (compV 1 1))) #t)
+(test (cmplx0? (cmplx- (compV 0 0) (compV 0 0))) #t)
+(test (cmplx0? (cmplx+ (compV -1 -1) (compV 1 1))) #t)
+(test (cmplx0? (cmplx+ (compV 1 1) (compV -1 -1))) #t)
+(test (cmplx0? (cmplx+ (compV 0 0) (compV 0 0))) #t)
+(test (cmplx0? (cmplx- (compV 0 1) (compV 1 1))) #f)
+(test (cmplx0? (cmplx+ (compV 0 -1) (compV 1 1))) #f)
+
+;; part d)
+
+;; no shadowing
+(test (subst (parse '(with [(x 1) (y 1)] (if0 x y z))) 'z (real 1)) (with (list (cons 'x (real 1)) (cons 'y (real 1))) (if0 (id 'x) (id 'y) (real 1))))
+(test (subst (parse '(with [(x 2) (y z)] (+ x z))) 'z (real 1)) (with (list (cons 'x (real 2)) (cons 'y (real 1))) (add (id 'x) (real 1))))
+(test (subst (parse '(with [(x z) (y z)] (+ x z))) 'z (real 1)) (with (list (cons 'x (real 1)) (cons 'y (real 1))) (add (id 'x) (real 1))))
+(test (subst (parse '(with [(x (2 i)) (y z)] (- x z))) 'z( imaginary 1)) (with (list (cons 'x (imaginary 2)) (cons 'y (imaginary 1))) (sub (id 'x) (imaginary 1))))
+(test (subst (parse '(with [(x z) (y z)] (- x z))) 'z (imaginary 1)) (with (list (cons 'x (imaginary 1)) (cons 'y (imaginary 1))) (sub (id 'x) (imaginary 1))))
+
+;; shadowing
+(test (subst (parse '(with [(x 2) (y x)] (+ x x))) 'x (real 1)) (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'x))))
+(test (subst (parse '(with [(x 2) (y x)] (+ x x))) 'x (id 'y)) (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'x))))
+
+
+;; part e)
+(test (interp (parse '1)) (compV 1 0))
+(test (interp (parse '0)) (compV 0 0))
+(test (interp (parse '(1 i))) (compV 0 1))
+(test (interp (parse '(+ 1 1))) (compV 2 0))
+(test (interp (parse '(+ (1 i) (1 i)))) (compV 0 2))
+(test (interp (parse '(+ 1 (1 i)))) (compV 1 1))
+(test (interp (parse '(+ 1 (- 2 (1 i))))) (compV 3 -1))
+(test/exn (interp (parse '(+ 1 x))) "interp: Open expression (free occurrence of x)")
+(test (interp (parse '(if0 0 2 1))) (compV 2 0))
+(test (interp (parse '(with [(x 2) (y 3)] (+ y x)))) (compV 5 0))
+(test (interp (parse '(with [(x 2) (y 3)] (- x x)))) (compV 0 0))
+(test (interp (parse '(with [(x 2) (y 3)] (if0 (- x x) 5 (1 i))))) (compV 5 0))
+(test/exn (interp (parse '(if0 (with [(x 2) (y 3)] (- x x)) (- x x) 1 ))) "interp: Open expression (free occurrence of x)")
+(test (interp (parse '(if0 (with [(x 2) (y 3)] (- x x)) (- 1 (-1 i)) 1))) (compV 1 1))
+
+
+
+
+
 
 
 
